@@ -1,0 +1,216 @@
+# Solution Details
+# PART 1 - General rules for the TAG:ENVIRONMENT data
+# 1 - Transform and lower TAG:ENVIRONMENT data evaluating against the 5 environments the customer wants to standardize on so that I can fix the case sensitive problem, following the order: Disaster Recovery, Production, Staging, Development, and Integration 
+# 2 - For each enviroment, I handle the abbreviations using the Contains comparison. Premises based on data observation* go as follows: 
+#           a) Enviroment that contains 'dr' will be Disaster Recovery
+#           b) Enviroment that contains 'prod' will be Production
+#           c) Enviroment that contains 'stg' or 'stag' will be Staging
+#           d) Enviroment that contains 'test' or 'dev' will be Development
+#           e) Enviroment that contains 'ci' will be Integration 
+#
+# 3 - Some values for  TAG:ENVIRONMENT do not contain any info related to their environment so I mapped them manually by its account name.
+#         India, release-master-a, release-master-b, infra-teams-ami, infra-il -> Staging
+#         central -> Development
+#         none, pr-8888 -> Integration 
+#         
+# PART 2 - Looking on ACCOUNT_NAME and then RESOURCE collumn for the environment info
+#  - I used the same rules as above to fill the empty values, using AND operator
+#
+# PART 3 - Filling out the remaining data with the dimension element called “Shared”
+# 1 - I found 'prod-stg-ci' as a resource value and it makes sense to be a Shared enviroment in my view
+# 2 - 'Any resources in the legacy Acme account that can’t be associated with an environment should be given a dimension element called “Shared”' ->> Anything that have 'Acme' account as value but does not have the TAG:ENVIRONMENT value
+# 3 - I couldn't find a proper environment for the 'acme-it' account, so I suppose it's a legacy account, then same rule as above
+#
+#
+# Data observation points: 
+#       -  Since I did not find any space character on TAG:ENVIRONMENT I won't be using transform normalize, furthermore, using Transform with Contains covers all the scenarios where special characters are used
+#       -  I assume test is  a Development environment
+#       -  For empty values I saw no specification on the doc so I chose to follow the general rules for yaml: https://stackoverflow.com/questions/34089496/empty-field-in-yaml)
+#       -  production-dr means I can't validate production first otherwise dr will be prodution, that's why Disaster Recovery comes first on evaluation
+CostContexts:
+  Environment:
+    Name: Environment
+    Rules:
+      - Type: Group
+        Name: Disaster Recovery
+        Conditions:
+          - Source: TAG:ENVIRONMENT
+          Transforms:
+            - Type: Lower
+          Contains:
+            - dr
+      - Type: Group
+        Name: Disaster Recovery
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: ACCOUNT_NAME
+            Contains:
+              - dr
+      - Type: Group
+        Name: Disaster Recovery
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: RESOURCE
+            Contains:
+              - dr
+      - Type: Group
+        Name: Production
+        Conditions: 
+          - Source: TAG:ENVIRONMENT
+          Transforms:
+            - Type: Lower
+          Contains:
+            - prod
+      - Type: Group
+        Name: Production
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: ACCOUNT_NAME
+            Contains:
+              - prod
+      - Type: Group
+        Name: Production
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: RESOURCE
+            Contains:
+              - prod
+      - Type: Group
+        Name: Staging
+        Conditions:
+          - Source: TAG:ENVIRONMENT
+          Transforms:
+            - Type: Lower
+          Contains:
+            - stg
+            - stag
+      - Type: Group
+        Name: Staging
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: ACCOUNT_NAME
+            Contains:
+              - stg
+              - stag
+      - Type: Group
+        Name: Staging
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: RESOURCE
+            Contains:
+              - stg
+              - stag
+      - Type: Group
+        Name: Development
+        Conditions:
+          - Source: TAG:ENVIRONMENT
+          Transforms:
+            - Type: Lower
+          Contains:
+            - test
+            - dev
+      - Type: Group
+        Name: Development
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: ACCOUNT_NAME
+            Contains:
+              - test
+              - dev
+      - Type: Group
+        Name: Development
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: RESOURCE
+            Contains:
+              - test
+              - dev
+      - Type: Group
+        Name: Integration 
+        Conditions:
+          - Source: TAG:ENVIRONMENT
+          Transforms:
+            - Type: Lower
+          Contains:
+            - ci
+      - Type: Group
+        Name: Integration 
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: ACCOUNT_NAME
+            Contains:
+              - ci
+      - Type: Group
+        Name: Integration 
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: RESOURCE
+            Contains:
+              - ci
+      - Type: Group
+        Name: Shared
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: RESOURCE
+            Contains:
+              - prod-stg-ci
+      - Type: Group
+        Name: Shared
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: ACCOUNT_NAME
+            Equals:
+              - acme
+              - acme-it
+      - Type: Group
+        Name: Staging
+        Conditions:
+          - Source: TAG:ENVIRONMENT
+          Equals:
+            - India
+            - release-master-a
+            - release-master-b
+            - infra-teams-ami
+            - infra-il
+      - Type: Group
+        Name: Development
+        Conditions:
+          - Source: TAG:ENVIRONMENT
+          Equals:
+            - central
+      - Type: Group
+        Name: Integration
+        Conditions:
+          - Source: TAG:ENVIRONMENT
+          Equals:
+            - none
+            - pr-8888
+
+
+
+
+
