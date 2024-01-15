@@ -8,7 +8,7 @@
 #           d) Enviroment that contains 'test' or 'dev' will be Development
 #           e) Enviroment that contains 'ci' will be Integration 
 #         
-# >>> STEP 2 - Looking on ACCOUNT_NAME and then RESOURCE collumn for the environment info
+# >>> STEP 2 - Looking on the following order (ACCOUNT_NAME, RESOURCE and then TAG:NAME) collumn for the environment info
 #  - I used the same rules as above to fill the empty values, using AND operator
 #
 # >>> STEP 3 - Filling out the remaining data with the dimension element called “Shared” and handling different values.
@@ -21,6 +21,7 @@
 #         none, pr-8888 -> Integration 
 #
 # Data observation premisses: 
+#       -  Besides the TAG:ENVIRONMENT, I decided to look on the following dimensions: ACCOUNT_NAME, RESOURCE and lastly TAG:NAME. In my analisis the other dimensions are not fit for the environment info.
 #       -  Since I did not find any space character on TAG:ENVIRONMENT I won't be using transform normalize, furthermore, using Transform with Contains covers all the scenarios where special characters are used
 #       -  I assume test is a Development environment
 #       -  For empty values I saw no specification on the doc so I chose to follow the general rules for yaml: https://stackoverflow.com/questions/34089496/empty-field-in-yaml)
@@ -56,6 +57,15 @@ CostContexts:
             Contains:
               - dr
       - Type: Group
+        Name: Disaster Recovery
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: TAG:NAME
+            Contains:
+              - dr
+      - Type: Group
         Name: Production
         Conditions: 
           - Source: TAG:ENVIRONMENT
@@ -79,6 +89,15 @@ CostContexts:
             - Source: TAG:ENVIRONMENT
             Equals:
             - Source: RESOURCE
+            Contains:
+              - prod
+      - Type: Group
+        Name: Production
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: TAG:NAME
             Contains:
               - prod
       - Type: Group
@@ -107,6 +126,16 @@ CostContexts:
             - Source: TAG:ENVIRONMENT
             Equals:
             - Source: RESOURCE
+            Contains:
+              - stg
+              - stag
+      - Type: Group
+        Name: Staging
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: TAG:NAME
             Contains:
               - stg
               - stag
@@ -140,6 +169,16 @@ CostContexts:
               - test
               - dev
       - Type: Group
+        Name: Development
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: TAG:NAME
+            Contains:
+              - test
+              - dev
+      - Type: Group
         Name: Integration 
         Conditions:
           - Source: TAG:ENVIRONMENT
@@ -163,6 +202,15 @@ CostContexts:
             - Source: TAG:ENVIRONMENT
             Equals:
             - Source: RESOURCE
+            Contains:
+              - ci
+      - Type: Group
+        Name: Integration
+        Conditions:
+          - And:
+            - Source: TAG:ENVIRONMENT
+            Equals:
+            - Source: TAG:NAME
             Contains:
               - ci
       - Type: Group
