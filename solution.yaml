@@ -20,7 +20,7 @@
 #         central -> Development
 #         none, pr-8888 -> Integration 
 #
-# Data observation points: 
+# Data observation premisses: 
 #       -  Since I did not find any space character on TAG:ENVIRONMENT I won't be using transform normalize, furthermore, using Transform with Contains covers all the scenarios where special characters are used
 #       -  I assume test is a Development environment
 #       -  For empty values I saw no specification on the doc so I chose to follow the general rules for yaml: https://stackoverflow.com/questions/34089496/empty-field-in-yaml)
